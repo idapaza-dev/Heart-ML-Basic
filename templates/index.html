@@ -1,0 +1,421 @@
+<!doctype html>
+<html class="light" lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interfaz de Predicción Heart-ML</title>
+
+  <!-- Tailwind CDN (con plugins) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Fonts & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- small custom styles -->
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    /* small helper for number inputs look */
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d141b] dark:text-white min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-surface-light dark:bg-surface-dark border-b border-[#e7edf3] dark:border-[#2a3b4d] px-4 md:px-10 py-3 shadow-sm">
+    <div class="max-w-[1400px] mx-auto flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-[24px]">cardiology</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold leading-tight tracking-tight">Heart-ML</h2>
+          <p class="text-xs text-[#4c739a] dark:text-gray-400 font-medium">Herramienta de Soporte Clínico</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-settings" class="hidden md:flex w-9 h-9 items-center justify-center rounded-lg bg-[#e7edf3] dark:bg-[#2a3b4d] hover:bg-[#d1dce7] dark:hover:bg-[#374a5e] transition-colors">
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+        </button>
+        <button id="btn-help" class="hidden md:flex w-9 h-9 items-center justify-center rounded-lg bg-[#e7edf3] dark:bg-[#2a3b4d] hover:bg-[#d1dce7] dark:hover:bg-[#374a5e] transition-colors">
+          <span class="material-symbols-outlined text-[20px]">help</span>
+        </button>
+        <div class="w-9 h-9 rounded-full bg-cover bg-center border border-[#e7edf3] dark:border-[#2a3b4d]" style="background-image: url('https://avatars.githubusercontent.com/u/3369400?v=4');"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8">
+    <div class="mb-8">
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">Modelo de Predicción de Enfermedad Cardíaca</h1>
+      <p class="text-[#4c739a] dark:text-gray-400 max-w-2xl">Ingrese los datos clínicos del paciente a continuación para generar una evaluación de riesgo. Todos los campos se crearán automáticamente según el modelo.</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+      <!-- Form column -->
+      <div class="w-full lg:w-2/3 bg-surface-light dark:bg-surface-dark rounded-xl border border-[#e7edf3] dark:border-[#2a3b4d] shadow-sm overflow-hidden flex flex-col">
+        <div class="p-6 space-y-6">
+          <section>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="material-symbols-outlined text-primary">person_check</span>
+              <h3 class="text-lg font-bold">Formulario (generado desde el modelo)</h3>
+            </div>
+
+            <p id="intro" class="text-sm text-[#4c739a] dark:text-gray-400 mb-3">Cargando formulario...</p>
+
+            <form id="predict-form" class="space-y-4" style="display:none;">
+              <div id="inputs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+              <div class="flex items-center gap-3 justify-between pt-4 border-t border-[#e7edf3] dark:border-[#2a3b4d]">
+                <div class="flex gap-3">
+                  <button type="button" id="btn-sample" class="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/5 transition">
+                    <span class="material-symbols-outlined text-[18px] align-middle">science</span> Ejemplo
+                  </button>
+                  <button type="button" id="btn-reset" class="px-4 py-2 rounded-lg border text-sm hover:bg-slate-100 dark:hover:bg-[#1e2a36] transition">
+                    <span class="material-symbols-outlined text-[18px] align-middle">autorenew</span> Limpiar
+                  </button>
+                </div>
+
+                <button type="submit" class="bg-blue-500 py-3 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 shadow-lg flex items-center gap-2 transform active:scale-95">
+                  Predecir <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            </form>
+
+          </section>
+
+          <!-- optional notes -->
+          <div class="text-sm text-[#4c739a] dark:text-gray-400">
+            <strong>Nota:</strong> el modelo devuelve la clase y la probabilidad. No sustituye consulta médica.
+          </div>
+        </div>
+      </div>
+
+      <!-- Result column -->
+      <aside class="w-full lg:w-1/3 flex flex-col gap-6 sticky top-24">
+        <div id="result-panel" class="bg-surface-light dark:bg-surface-dark rounded-xl border border-[#e7edf3] dark:border-[#2a3b4d] shadow-sm p-6" style="display:none;">
+          <div class="flex items-start gap-4">
+            <div class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+              <span class="material-symbols-outlined text-red-500 text-[36px]">monitor_heart</span>
+            </div>
+            <div class="flex-1">
+              <h4 class="text-lg font-bold" id="result-title">Enfermedad Cardíaca</h4>
+              <span id="result-badge" class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold mt-2"></span>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="flex justify-between items-end mb-2">
+              <span class="text-sm text-[#4c739a]">Puntuación de Confianza</span>
+              <span class="text-xl font-bold text-primary" id="result-percent">0%</span>
+            </div>
+            <div class="w-full bg-[#e7edf3] dark:bg-[#2a3b4d] rounded-full h-3 overflow-hidden">
+              <div id="result-bar" class="h-3 rounded-full bg-gradient-to-r from-primary to-red-500" style="width:0%"></div>
+            </div>
+            <p class="text-xs text-[#4c739a] dark:text-gray-400 mt-2 text-center" id="result-note">Interpretación basada en la probabilidad estimada.</p>
+          </div>
+
+          <div class="mt-6 bg-slate-50 dark:bg-[#10151a] rounded-lg p-4 border border-[#e7edf3] dark:border-[#2a3b4d]">
+            <h5 class="text-xs font-bold uppercase tracking-wide mb-3">Detalles</h5>
+            <pre id="result-json" class="text-xs overflow-auto bg-transparent p-0 m-0"></pre>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            <button id="copy-json" class="flex-1 py-2 text-primary text-sm font-semibold hover:bg-primary/5 rounded">Copiar JSON</button>
+            <button id="export-pdf" class="flex-1 py-2 text-primary text-sm font-semibold hover:bg-primary/5 rounded">Exportar PDF</button>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-900/20">
+          <div class="flex gap-3 items-start">
+            <span class="material-symbols-outlined text-primary">info</span>
+            <p class="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
+              <strong>Aviso Médico:</strong> Esta herramienta es informativa y no constituye un diagnóstico médico.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+<script>
+/* ========= Config y heurísticas para campos categóricos / valores de ejemplo ========= */
+const selectsMap = {
+  "sexo": [
+    { v: 1, t: "1 - Masculino" },
+    { v: 0, t: "0 - Femenino" }
+  ],
+  "glucosa_ayunas_gt120": [
+    { v: 0, t: "0 - ≤ 120 mg/dl (No)" },
+    { v: 1, t: "1 - > 120 mg/dl (Sí)" }
+  ],
+  "angina_ejercicio": [
+    { v: 0, t: "0 - No" },
+    { v: 1, t: "1 - Sí" }
+  ],
+  "ecg_reposo": [
+    { v: 0, t: "0 - Normal" },
+    { v: 1, t: "1 - Anomalía ST-T" },
+    { v: 2, t: "2 - Hipertrofia ventricular izquierda" }
+  ],
+  "vasos_fluoroscopia": [
+    { v: 0, t: "0" },
+    { v: 1, t: "1" },
+    { v: 2, t: "2" },
+    { v: 3, t: "3" }
+  ],
+  "thal": [
+    { v: 3, t: "3 - Normal" },
+    { v: 6, t: "6 - Defecto fijo" },
+    { v: 7, t: "7 - Defecto reversible" }
+  ],
+  "cp": [
+    { v: 0, t: "0 - Angina típica" },
+    { v: 1, t: "1 - Angina atípica" },
+    { v: 2, t: "2 - Dolor no anginoso" },
+    { v: 3, t: "3 - Asintomático" }
+  ],
+  "dolor_pecho": [
+    { v: 0, t: "0 - Angina típica" },
+    { v: 1, t: "1 - Angina atípica" },
+    { v: 2, t: "2 - Dolor no anginoso" },
+    { v: 3, t: "3 - Asintomático" }
+  ]
+};
+
+const sampleValues = {
+  edad: 52, sexo: 1, dolor_pecho: 1, presion_reposo: 130, colesterol: 240,
+  glucosa_ayunas_gt120: 0, ecg_reposo: 1, frecuencia_max: 150, angina_ejercicio: 0,
+  depresion_st: 1.2, pendiente_st: 2, vasos_fluoroscopia: 0, thal: 3
+};
+
+/* ========= Helpers ========= */
+function titleCaseLabel(key) {
+  return key.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/* ========= Cargar features desde backend y construir formulario ========= */
+async function loadFeatures() {
+  try {
+    const res = await fetch('/features');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'No se pudo obtener features');
+    const features = data.features;
+    buildForm(features);
+  } catch (err) {
+    document.getElementById('intro').innerText = 'Error al cargar formulario: ' + err.message;
+  }
+}
+
+function buildForm(features) {
+  const grid = document.getElementById('inputs-grid');
+  grid.innerHTML = '';
+  features.forEach((f) => {
+    const key = f;
+    const container = document.createElement('div');
+    container.className = 'flex flex-col gap-2';
+    const label = document.createElement('label');
+    label.className = 'text-sm font-semibold';
+    label.innerText = titleCaseLabel(key);
+    container.appendChild(label);
+
+    // decide select vs number vs checkbox vs range
+    const lower = key.toLowerCase();
+    let matched = null;
+    for (const k in selectsMap) {
+      if (lower.includes(k)) { matched = k; break; }
+    }
+
+    if (matched) {
+      const sel = document.createElement('select');
+      sel.id = key;
+      sel.className = 'rounded-lg border p-3 bg-slate-50 dark:bg-[#151f28]';
+      selectsMap[matched].forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt.v;
+        o.text = opt.t;
+        sel.appendChild(o);
+      });
+      container.appendChild(sel);
+    } else if (lower.includes('range') || lower.includes('frecuencia') || lower.includes('thalach') || lower.includes('frecuencia_max')) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex flex-col gap-2';
+      const range = document.createElement('input');
+      range.type = 'range';
+      range.id = key;
+      range.min = 20;
+      range.max = 220;
+      range.value = sampleValues[key] || 120;
+      range.className = 'w-full';
+      const span = document.createElement('div');
+      span.className = 'text-xs text-[#4c739a]';
+      span.innerText = range.value;
+      range.addEventListener('input', () => span.innerText = range.value);
+      wrapper.appendChild(range);
+      wrapper.appendChild(span);
+      container.appendChild(wrapper);
+    } else if (lower.includes('glucosa') && !matched) {
+      // checkbox style for binary
+      const chkWrap = document.createElement('label');
+      chkWrap.className = 'inline-flex items-center gap-3 p-3 rounded-lg border bg-slate-50 dark:bg-[#151f28] cursor-pointer';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.id = key;
+      chk.className = 'w-5 h-5';
+      chkWrap.appendChild(chk);
+      const span = document.createElement('span');
+      span.innerText = '> 120 mg/dl';
+      chkWrap.appendChild(span);
+      container.appendChild(chkWrap);
+    } else {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.step = 'any';
+      inp.id = key;
+      inp.className = 'rounded-lg border p-3 bg-slate-50 dark:bg-[#151f28]';
+      // hints based on name
+      if (lower.includes('edad')) { inp.min = 0; inp.max = 120; inp.placeholder = 'ej., 55'; }
+      if (lower.includes('colesterol')) { inp.min = 0; inp.placeholder = 'mg/dl'; }
+      if (lower.includes('depresion') || lower.includes('oldpeak')) inp.step = '0.1';
+      container.appendChild(inp);
+    }
+
+    grid.appendChild(container);
+  });
+
+  document.getElementById('intro').innerText = 'Formulario listo. Rellene los campos y haga click en Predecir.';
+  document.getElementById('predict-form').style.display = 'block';
+}
+
+/* ====== Form actions ====== */
+document.getElementById('btn-sample').addEventListener('click', () => {
+  Object.keys(sampleValues).forEach(k => {
+    const el = document.getElementById(k);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = Boolean(sampleValues[k]);
+    else el.value = sampleValues[k];
+    if (el.tagName === 'INPUT' && el.type === 'range') {
+      // trigger input event if needed
+      el.dispatchEvent(new Event('input'));
+    }
+  });
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  const inputs = document.querySelectorAll('#inputs-grid input, #inputs-grid select');
+  inputs.forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else el.value = '';
+    if (el.tagName === 'INPUT' && el.type === 'range') el.dispatchEvent(new Event('input'));
+  });
+  // hide result
+  document.getElementById('result-panel').style.display = 'none';
+});
+
+/* ====== Submit ====== */
+document.getElementById('predict-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const inputs = document.querySelectorAll('#inputs-grid input, #inputs-grid select');
+  const payload = {};
+  for (const el of inputs) {
+    if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+      payload[el.id] = el.checked ? 1 : 0;
+      continue;
+    }
+    // ranges and selects and numbers -> convert to number
+    if (el.value === '') {
+      alert('Por favor complete todos los campos.');
+      return;
+    }
+    payload[el.id] = Number(el.value);
+  }
+
+  // visual feedback
+  const btn = e.submitter;
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Procesando...';
+
+  try {
+    const res = await fetch('/predict', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({features: payload})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error en la respuesta del servidor');
+    showResult(data);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+});
+
+/* ====== Mostrar resultado ====== */
+function showResult(data) {
+  const panel = document.getElementById('result-panel');
+  const badge = document.getElementById('result-badge');
+  const percentEl = document.getElementById('result-percent');
+  const bar = document.getElementById('result-bar');
+  const title = document.getElementById('result-title');
+  const note = document.getElementById('result-note');
+  const jsonEl = document.getElementById('result-json');
+
+  const prob = (typeof data.probability === 'number') ? data.probability : null;
+  const pred = data.prediction;
+
+  // title & badge
+  if (pred === 1) {
+    title.innerText = 'Enfermedad Cardíaca';
+    badge.innerText = 'Riesgo Detectado';
+    badge.className = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold mt-2 bg-red-100 text-red-700';
+  } else {
+    title.innerText = 'Probable No Enfermedad';
+    badge.innerText = 'Riesgo Bajo';
+    badge.className = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold mt-2 bg-green-100 text-green-700';
+  }
+
+  // probability bar
+  if (prob !== null) {
+    const pct = Math.round(prob * 100);
+    percentEl.innerText = pct + '%';
+    bar.style.width = pct + '%';
+    // color rule
+    bar.className = 'h-3 rounded-full';
+    if (prob >= 0.66) bar.classList.add('bg-red-500');
+    else if (prob >= 0.33) bar.classList.add('bg-yellow-400');
+    else bar.classList.add('bg-green-500');
+    note.innerText = 'Interpretación basada en la probabilidad estimada por el modelo.';
+  } else {
+    percentEl.innerText = 'N/A';
+    bar.style.width = '0%';
+    bar.className = 'h-3 rounded-full bg-gray-400';
+    note.innerText = 'No hay probabilidad disponible.';
+  }
+
+  jsonEl.innerText = JSON.stringify(data, null, 2);
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ====== botones utilitarios ====== */
+document.getElementById('copy-json').addEventListener('click', () => {
+  const txt = document.getElementById('result-json').innerText;
+  navigator.clipboard.writeText(txt).then(()=> alert('JSON copiado'));
+});
+document.getElementById('export-pdf').addEventListener('click', () => {
+  alert('Funcionalidad Exportar PDF no implementada aquí. Puedo agregarla si quieres.');
+});
+
+/* ====== iniciar ====== */
+window.addEventListener('load', loadFeatures);
+</script>
+</body>
+</html>

@@ -1,4 +1,14 @@
+# Dependencias del proyecto (sin fijar versiones)
+numpy
+scipy
 pandas
-matplotlib
 scikit-learn
 joblib
+matplotlib
+
+# Web / servidor
+flask
+flask-cors
+
+# # Opcional para despliegue en producción
+# gunicorn
